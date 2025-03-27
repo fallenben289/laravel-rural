@@ -19,6 +19,10 @@
             top: -5px;
             right: -5px;
         }
+        .navbar {
+            position: relative;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
@@ -111,39 +115,61 @@
         </div>
     </div>
 
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const cart = JSON.parse(sessionStorage.getItem('cart')) || [];
-            const whatsappNumber = "{{ $vendor->phone }}"; // Vendor's WhatsApp number
+            const whatsappNumber = "{{ $vendor->phone }}";
             updateCartBadge();
 
+            // Add to cart functionality
             document.querySelectorAll('.add-to-cart').forEach(button => {
                 button.addEventListener('click', function() {
                     const productId = this.getAttribute('data-id');
                     const productName = this.getAttribute('data-name');
                     const productPrice = parseFloat(this.getAttribute('data-price'));
-
+                    
                     addToCart(productId, productName, productPrice);
+                    
+                    // Show feedback
+                    const toast = document.createElement('div');
+                    toast.className = 'position-fixed bottom-0 end-0 p-3';
+                    toast.innerHTML = `
+                        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                            <div class="toast-header">
+                                <strong class="me-auto">Added to cart</strong>
+                                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                            <div class="toast-body">
+                                ${productName} added to cart
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(toast);
+                    setTimeout(() => toast.remove(), 3000);
                 });
             });
 
-            document.getElementById('cartButton').addEventListener('click', function() {
+            // Cart button click handler
+            document.getElementById('cartButton').addEventListener('click', function(e) {
+                e.preventDefault();
                 showWhatsappModal();
             });
 
+            // WhatsApp button click handler
             document.getElementById('sendWhatsappBtn').addEventListener('click', function() {
                 sendOrderViaWhatsapp();
             });
 
             function addToCart(id, name, price) {
                 const existingItem = cart.find(item => item.id === id);
-
                 if (existingItem) {
                     existingItem.quantity++;
                 } else {
                     cart.push({ id, name, price, quantity: 1 });
                 }
-
                 sessionStorage.setItem('cart', JSON.stringify(cart));
                 updateCartBadge();
             }
@@ -177,7 +203,9 @@
                 const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
                 orderTotal.textContent = `$${total.toFixed(2)}`;
 
-                new bootstrap.Modal(document.getElementById('whatsappModal')).show();
+                // Initialize and show modal
+                const modal = new bootstrap.Modal(document.getElementById('whatsappModal'));
+                modal.show();
             }
 
             function sendOrderViaWhatsapp() {
@@ -190,14 +218,29 @@
                     return;
                 }
 
-                let message = `*NEW ORDER*%0A%0A*Customer Name:* ${name}%0A*Phone:* ${phone}%0A*Address:* ${address}%0A%0A*Order Details:*%0A`;
-                cart.forEach(item => message += `- ${item.name} (${item.quantity} × $${item.price.toFixed(2)})%0A`);
-                message += `%0A*Total: $${orderTotal.textContent}*`;
+                let message = `*NEW ORDER*%0A%0A`;
+                message += `*Customer Name:* ${name}%0A`;
+                message += `*Phone:* ${phone}%0A`;
+                message += `*Address:* ${address}%0A%0A`;
+                message += `*Order Details:*%0A`;
 
-                window.open(`https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${message}`, '_blank');
+                cart.forEach(item => {
+                    message += `- ${item.name} (${item.quantity} × $${item.price.toFixed(2)})%0A`;
+                });
+
+                const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                message += `%0A*Total: $${total.toFixed(2)}*`;
+
+                const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${message}`;
 
                 sessionStorage.removeItem('cart');
                 updateCartBadge();
+
+                window.open(whatsappUrl, '_blank');
+                
+                // Hide the modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('whatsappModal'));
+                modal.hide();
             }
         });
     </script>
