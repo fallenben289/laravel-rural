@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Page</title>
+    <title>{{ $vendor->name }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -22,9 +22,10 @@
     </style>
 </head>
 <body>
+    <!-- Simple Header -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="#">Customer Page</a>
+            <a class="navbar-brand" href="#">{{ $vendor->name }}</a>
             <div class="ms-auto position-relative">
                 <button class="btn btn-light" id="cartButton">
                     <i class="fas fa-shopping-cart"></i>
@@ -34,6 +35,7 @@
         </div>
     </nav>
 
+    <!-- Main Content -->
     <div class="container my-5">
         <div class="row">
             @foreach($products as $product)
@@ -52,7 +54,7 @@
                         <h5>{{ $product->name }}</h5>
                         <p class="text-muted small">{{ $product->description }}</p>
                         <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="text-primary mb-0">RM{{ number_format($product->price, 2) }}</h5>
+                            <h5 class="text-primary mb-0">${{ number_format($product->price, 2) }}</h5>
                             <span class="badge bg-success">{{ $product->quantity }} in stock</span>
                         </div>
                     </div>
@@ -70,6 +72,7 @@
         </div>
     </div>
 
+    <!-- WhatsApp Order Modal -->
     <div class="modal fade" id="whatsappModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -94,7 +97,7 @@
                         <div class="mb-3">
                             <label class="form-label">Your Order:</label>
                             <div id="orderSummary" class="border p-2 mb-3"></div>
-                            <h5>Total: <span id="orderTotal">RM0.00</span></h5>
+                            <h5>Total: <span id="orderTotal">$0.00</span></h5>
                         </div>
                     </form>
                 </div>
@@ -111,8 +114,18 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const cart = JSON.parse(sessionStorage.getItem('cart')) || [];
-            const whatsappNumber = "{{ $vendor->phone }}"; 
+            const whatsappNumber = "{{ $vendor->phone }}"; // Vendor's WhatsApp number
             updateCartBadge();
+
+            document.querySelectorAll('.add-to-cart').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = this.getAttribute('data-id');
+                    const productName = this.getAttribute('data-name');
+                    const productPrice = parseFloat(this.getAttribute('data-price'));
+
+                    addToCart(productId, productName, productPrice);
+                });
+            });
 
             document.getElementById('cartButton').addEventListener('click', function() {
                 showWhatsappModal();
@@ -121,6 +134,19 @@
             document.getElementById('sendWhatsappBtn').addEventListener('click', function() {
                 sendOrderViaWhatsapp();
             });
+
+            function addToCart(id, name, price) {
+                const existingItem = cart.find(item => item.id === id);
+
+                if (existingItem) {
+                    existingItem.quantity++;
+                } else {
+                    cart.push({ id, name, price, quantity: 1 });
+                }
+
+                sessionStorage.setItem('cart', JSON.stringify(cart));
+                updateCartBadge();
+            }
 
             function updateCartBadge() {
                 const count = cart.reduce((total, item) => total + item.quantity, 0);
@@ -140,16 +166,16 @@
                     <div class="d-flex justify-content-between mb-2">
                         <div>
                             <strong>${item.name}</strong>
-                            <div>RM${item.price.toFixed(2)} × ${item.quantity}</div>
+                            <div>$${item.price.toFixed(2)} × ${item.quantity}</div>
                         </div>
                         <div>
-                            RM${(item.price * item.quantity).toFixed(2)}
+                            $${(item.price * item.quantity).toFixed(2)}
                         </div>
                     </div>
                 `).join('');
 
                 const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                orderTotal.textContent = `RM${total.toFixed(2)}`;
+                orderTotal.textContent = `$${total.toFixed(2)}`;
 
                 new bootstrap.Modal(document.getElementById('whatsappModal')).show();
             }
@@ -164,31 +190,16 @@
                     return;
                 }
 
-                let message = `*NEW ORDER*%0A%0A`;
-                message += `*Customer Name:* ${name}%0A`;
-                message += `*Phone:* ${phone}%0A`;
-                message += `*Address:* ${address}%0A%0A`;
-                message += `*Order Details:*%0A`;
+                let message = `*NEW ORDER*%0A%0A*Customer Name:* ${name}%0A*Phone:* ${phone}%0A*Address:* ${address}%0A%0A*Order Details:*%0A`;
+                cart.forEach(item => message += `- ${item.name} (${item.quantity} × $${item.price.toFixed(2)})%0A`);
+                message += `%0A*Total: $${orderTotal.textContent}*`;
 
-                cart.forEach(item => {
-                    message += `- ${item.name} (${item.quantity} × RM${item.price.toFixed(2)})%0A`;
-                });
-
-                const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                message += `%0A*Total: RM${total.toFixed(2)}*`;
-
-                const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${message}`;
+                window.open(`https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${message}`, '_blank');
 
                 sessionStorage.removeItem('cart');
                 updateCartBadge();
-
-                window.open(whatsappUrl, '_blank');
-
-                bootstrap.Modal.getInstance(document.getElementById('whatsappModal')).hide();
-                alert('Order sent successfully via WhatsApp! We will contact you soon.');
             }
         });
     </script>
-
 </body>
 </html>
