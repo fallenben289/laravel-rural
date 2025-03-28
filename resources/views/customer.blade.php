@@ -191,8 +191,8 @@
                 orderSummary.innerHTML = cart.map(item => `
                     <div class="d-flex justify-content-between mb-2">
                         <div>
-                            <strong>${item.name}</strong>
-                            <div>$${item.price.toFixed(2)} × ${item.quantity}</div>
+                            <strong>RM{item.name}</strong>
+                            <div>$RM{item.price.toFixed(2)} × {item.quantity}</div>
                         </div>
                         <div>
                             $${(item.price * item.quantity).toFixed(2)}
@@ -229,7 +229,7 @@
                 });
 
                 const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                message += `%0A*Total: $${total.toFixed(2)}*`;
+                message += `%0A*Total: RM${total.toFixed(2)}*`;
 
                 const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${message}`;
 
