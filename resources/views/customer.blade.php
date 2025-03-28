@@ -192,7 +192,7 @@
                     <div class="d-flex justify-content-between mb-2">
                         <div>
                             <strong>${item.name}</strong>
-                            <div>$${item.price.toFixed(2)} × {item.quantity}</div>
+                            <div>RM${item.price.toFixed(2)} × ${item.quantity}</div>
                         </div>
                         <div>
                             $${(item.price * item.quantity).toFixed(2)}
@@ -201,7 +201,7 @@
                 `).join('');
 
                 const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                orderTotal.textContent = `$${total.toFixed(2)}`;
+                orderTotal.textContent = `RM${total.toFixed(2)}`;
 
                 // Initialize and show modal
                 const modal = new bootstrap.Modal(document.getElementById('whatsappModal'));
