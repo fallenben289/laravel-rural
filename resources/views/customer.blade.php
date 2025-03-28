@@ -191,8 +191,8 @@
                 orderSummary.innerHTML = cart.map(item => `
                     <div class="d-flex justify-content-between mb-2">
                         <div>
-                            <strong>RM{item.name}</strong>
-                            <div>$RM{item.price.toFixed(2)} × {item.quantity}</div>
+                            <strong>${item.name}</strong>
+                            <div>$${item.price.toFixed(2)} × {item.quantity}</div>
                         </div>
                         <div>
                             $${(item.price * item.quantity).toFixed(2)}
