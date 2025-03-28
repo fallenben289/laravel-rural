@@ -58,7 +58,7 @@
                         <h5>{{ $product->name }}</h5>
                         <p class="text-muted small">{{ $product->description }}</p>
                         <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="text-primary mb-0">${{ number_format($product->price, 2) }}</h5>
+                            <h5 class="text-primary mb-0">RM{{ number_format($product->price, 2) }}</h5>
                             <span class="badge bg-success">{{ $product->quantity }} in stock</span>
                         </div>
                     </div>
@@ -101,7 +101,7 @@
                         <div class="mb-3">
                             <label class="form-label">Your Order:</label>
                             <div id="orderSummary" class="border p-2 mb-3"></div>
-                            <h5>Total: <span id="orderTotal">$0.00</span></h5>
+                            <h5>Total: <span id="orderTotal">RM0.00</span></h5>
                         </div>
                     </form>
                 </div>
