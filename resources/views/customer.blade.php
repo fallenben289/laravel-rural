@@ -195,7 +195,7 @@
                             <div>RM${item.price.toFixed(2)} × ${item.quantity}</div>
                         </div>
                         <div>
-                            $${(item.price * item.quantity).toFixed(2)}
+                            RM${(item.price * item.quantity).toFixed(2)}
                         </div>
                     </div>
                 `).join('');
